@@ -1,0 +1,26 @@
+# Restricted input data - see data/README.md
+data/*.tif
+data/*.shp
+data/*.dbf
+data/*.shx
+data/*.prj
+data/*.cpg
+data/*.xlsx
+
+# Outputs
+output_maps*/
+rasters_v*/
+standard_error/
+*.png
+*.pdf
+!docs/*.png
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+env/
+
+# Test fixture (regenerate with tests/make_fixture.py)
+tests/fixture/

@@ -1,0 +1,12 @@
+{
+  "title": "Closed-form earthquake-induced landslide hazard assessment pipeline (Makilala, North Cotabato)",
+  "upload_type": "software",
+  "license": "MIT",
+  "keywords": [
+    "earthquake-induced landslides",
+    "pseudo-static slope stability",
+    "critical seismic coefficient",
+    "spatially blocked cross-validation",
+    "Philippines"
+  ]
+}

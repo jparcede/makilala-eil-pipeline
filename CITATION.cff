@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the paper."
+title: "Closed-form earthquake-induced landslide hazard assessment pipeline (Makilala, North Cotabato)"
+abstract: >-
+  Analysis code for a closed-form pseudo-static Factor of Safety framework for
+  shallow translational slope failure, evaluated at 5 m resolution over the
+  municipality of Makilala, North Cotabato, Philippines, and validated against
+  the PHIVOLCS co-seismic landslide inventory of the 2019 Cotabato-Davao del Sur
+  sequence. Includes the factor-of-safety and critical seismic coefficient
+  pipeline, pooled and spatially blocked validation, delta-method and Sobol
+  sensitivity analyses, and the coordinate-reference-system diagnostics.
+type: software
+license: MIT
+version: 1.0.0
+date-released: 2026-09-01
+authors:
+  - family-names: Cubio
+    given-names: "Anthony Laurence M."
+    affiliation: "Caraga State University"
+  - family-names: Arcede
+    given-names: "Jayrold P."
+    affiliation: "Caraga State University"
+    email: jparcede@carsu.edu.ph
+  - family-names: Dizon
+    given-names: "Margarita P."
+    affiliation: "DOST-PHIVOLCS"
+  - family-names: Daag
+    given-names: "Arturo S."
+    affiliation: "DOST-PHIVOLCS"
+  - family-names: Grutas
+    given-names: "Rhommel N."
+    affiliation: "DOST-PHIVOLCS"
+  - family-names: Villarias
+    given-names: "Ken A. C."
+    affiliation: "DOST-PHIVOLCS"
+  - family-names: Segales
+    given-names: "Jay Melvin B."
+    affiliation: "Caraga State University"
+  - family-names: Abonales
+    given-names: "Marc Lin F."
+    affiliation: "Caraga State University"
+  - family-names: Gagula
+    given-names: "Arnaldo C."
+    affiliation: "Caraga State University"
+  - family-names: Cubillas
+    given-names: "James Earl D."
+    affiliation: "Caraga State University"
+keywords:
+  - earthquake-induced landslides
+  - pseudo-static slope stability
+  - infinite slope model
+  - critical seismic coefficient
+  - spatially blocked cross-validation
+  - Philippines
