@@ -136,12 +136,29 @@ the assumed 30%, 87.4% at 50%). Cell 12 is corrected.
 The decomposition's honest support is 4,754,653 px, 66.9% of the scored domain,
 because that is where all four EBK standard-error surfaces exist.
 
-### Still open: the point-level subset
+### Resolved: the point-level subset
 
-The point-level validation of Section 6.5 is not yet reconciled: the manuscript
-reports 27 sites and J = 0.097, while v11 cell 25 rebuilds the computation and
-obtains 31 sites and J = 0.127. The earlier 27-site computation could not be
-located. See the cell comment in v11.
+Section 6.5 of the submitted manuscript already uses this cell's rebuilt
+figures -- 31 sites, J = 0.127, 4 of 31 classified differently. The apparent
+disagreement with "27 sites, J = 0.097" came from the `(paper: ...)` comparison
+literals inside cell 25, which were left over from an earlier draft; they are
+now synchronised. `src/validation/point_screen_reconciliation.py` rebuilds the
+scored mask independently (SCORED = 7,104,440) and enumerates the candidate
+screens: 36 sites in domain, 31 complete on the five properties the
+correlations consume, 30 complete on all nine laboratory fields. No screen
+yields 27, and the five-property screen is the defensible one because LL, PL,
+gravel and dry unit weight are not inputs to the model.
+
+Cell 25 also resolved spreadsheet columns by substring, so `col("PL")` matched
+`SAMPLE LABEL` -- "sam**PL**e label" -- before the real PL column, reporting PL
+as present at 0 of 36 sites when it is present at 42 of 43. That is what
+collapsed the "full laboratory record" screen to zero.
+
+The co-location counts in Section 6.5 were corrected from 15 and 18 within
+25 m and 50 m to **14 and 18**, verified by
+`src/validation/colocation_check.py`, which measures both to the nearest
+centre-rasterised inventory pixel (3 / 14 / 18, median 25.0 m) and to the
+polygon geometry (3 / 16 / 18, median 21.9 m).
 
 ## The CRS diagnostics
 
