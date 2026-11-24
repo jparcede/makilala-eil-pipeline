@@ -1,8 +1,8 @@
 # Closed-form earthquake-induced landslide hazard assessment
 
-Analysis code for the paper *Closed-Form Earthquake-Induced Landslide Hazard
-Assessment for Makilala, North Cotabato: Regional Application and Validation of
-the Analytical Factor of Safety Framework*.
+Analysis code for the paper *Calibration transfers but discrimination does not:
+spatially blocked validation of a closed-form co-seismic landslide model,
+Makilala, Philippines*.
 
 The framework computes, at every pixel and in closed form, the pseudo-static
 Factor of Safety for shallow translational failure, the critical seismic
@@ -18,10 +18,14 @@ the static safety margin. It is applied over 7.10 million pixels at 5 m
 resolution and validated against 1,703 inventory polygons of the 2019
 Cotabato-Davao del Sur seismic sequence.
 
-There is no training step. One number is calibrated from the inventory -- the
-operating threshold `theta*` -- and everything else comes from soil properties,
-topography and modelled ground motion. To run the framework somewhere else,
-substitute that municipality's rasters.
+No parameter of the physical model is fitted to the inventory. Exactly one
+scalar is -- the operating threshold `theta*`, chosen to maximise the Youden
+index -- and everything else comes from soil properties, topography and
+modelled ground motion. To run the framework somewhere else, substitute that
+municipality's rasters; note that an operating threshold must still be set
+there, either borrowed from a calibrated area or estimated from a local
+inventory. The paper's blocked validation is the evidence on what borrowing one
+costs.
 
 Everything is computed **pixel-wise** on the 5 m grid: the factor of safety, the
 critical seismic coefficient and the sensitivity bound are element-wise functions
@@ -39,9 +43,12 @@ src/sensitivity/  delta-method uncertainty propagation into k_c;
                   Sobol variance-based global sensitivity (Saltelli, N=4096)
 src/crs/          coordinate reference system diagnostics (see below)
 src/figures/      figure regeneration
-notebooks/        v9  -- the pipeline as the paper was written against
+notebooks/        v9  -- the pipeline the first draft was written against
                   v10 -- the same model, rebuilt so that every published number
-                  is recomputed and checked against its published value
+                         is recomputed and checked against its published value
+                  v11 -- CURRENT. v10 plus the threshold-plateau test, the
+                         block-size sweep and the blocked-validation figure.
+                         The manuscript's numbers are the v11 numbers.
 tests/            anti-drift corruption test and a synthetic fixture
 docs/             CRS root-cause write-up
 data/             input data documentation; rasters are not distributed here
@@ -61,9 +68,9 @@ restricted and how to request them.
 
 ## Verification
 
-`notebooks/Makilala_FoS_Pipeline_v10.ipynb` is the version to run. It computes
-the same model as v9 and additionally checks **81 quantities** against the values
-printed in the paper -- the domain cascade, all twelve cohesion x depth-cap
+`notebooks/Makilala_FoS_Pipeline_v11.ipynb` is the version to run, and the one
+the manuscript's numbers come from. It computes the same model as v9 and v10 and
+checks **81 quantities** against the values printed in the paper -- the domain cascade, all twelve cohesion x depth-cap
 configurations, the parameter table over both its domains, the pixel-level
 confusion matrix, Form B, polygon-level and ESI-stratified detection, the
 spatially blocked validation including leave-one-block-out threshold transfer,
@@ -93,6 +100,30 @@ each time:
 python tests/make_fixture.py     # synthetic rasters, no real data needed
 python tests/guard_test.py       # expect 4/4
 ```
+
+## Which script produces which result
+
+| Manuscript item | Produced by |
+|---|---|
+| Table 2 domain cascade; Table 3 parameter statistics | `notebooks/...v11.ipynb` §16 |
+| Figure 3 six-panel output map | `src/figures/regen_figs_v9.py` |
+| Table 5 cohesion x depth-cap sweep; Figures 4-5 | `notebooks/...v11.ipynb` §16 |
+| Pixel, polygon and ESI-stratified validation (Tables 6-8) | `src/validation/v7_cell17_final_validation_v2.py` |
+| Form B zone statistics | `src/validation/formb_zones.py` |
+| Spatially blocked validation, Table 10 and Figure 8 | `notebooks/...v11.ipynb` §28 |
+| Threshold plateau and spatial K-fold transfer (Section 6.4) | `src/validation/v10_theta_plateau_test.py` |
+| Variogram ranges and block-size sweep (Table 11) | `src/validation/v10_block_size.py` |
+| Point-level validation (Section 6.5) | `notebooks/...v11.ipynb` §25 |
+| k_c variance decomposition (Table 12) | `notebooks/...v11.ipynb` §12 |
+| Sobol indices (Appendix C) | `src/sensitivity/regen_fig8_sobol.py` |
+| CRS diagnosis (Section 4.4, Supplementary S1) | `src/crs/crs_offset_scan.py`, `crs_decisive_test.py` |
+
+Two numbers are under active reconciliation between the manuscript and v11 and
+should not be treated as settled by this archive: the soil-depth share of
+`Var(k_c)` (manuscript 71.5%, v11 cell 12 recomputes 69.9% with first-order
+shares summing to 98.1%), and the point-level validation subset of Section 6.5
+(manuscript 27 sites, J = 0.097; v11 cell 25 rebuilds 31 sites, J = 0.127).
+See the cell comments in v11 for both.
 
 ## The CRS diagnostics
 
