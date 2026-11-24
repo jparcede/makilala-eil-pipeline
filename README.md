@@ -118,12 +118,30 @@ python tests/guard_test.py       # expect 4/4
 | Sobol indices (Appendix C) | `src/sensitivity/regen_fig8_sobol.py` |
 | CRS diagnosis (Section 4.4, Supplementary S1) | `src/crs/crs_offset_scan.py`, `crs_decisive_test.py` |
 
-Two numbers are under active reconciliation between the manuscript and v11 and
-should not be treated as settled by this archive: the soil-depth share of
-`Var(k_c)` (manuscript 71.5%, v11 cell 12 recomputes 69.9% with first-order
-shares summing to 98.1%), and the point-level validation subset of Section 6.5
-(manuscript 27 sites, J = 0.097; v11 cell 25 rebuilds 31 sites, J = 0.127).
-See the cell comments in v11 for both.
+### Resolved: the soil-depth variance share
+
+v11 cell 12 originally reported the soil-depth share of `Var(k_c)` as 69.9%
+against the manuscript's 71.5%, with first-order shares summing to 98.1% rather
+than 100%. The cause was an averaging-domain mismatch: each term's mean was
+taken over the pixels where that term was defined, while the denominator was
+the mean of the sum, which is undefined wherever any term is. Averaging
+everything over the same support gives **71.4%** and a total of 100.0%,
+confirming the published figure. `src/sensitivity/kc_variance_common_mask.py`
+rebuilds the parameter stack and the scored mask from the rasters independently
+of the notebook -- it returns SCORED = 7,104,440, matching the published count
+-- and prints both decompositions side by side together with the sensitivity of
+the depth share to the assumed relative error on depth (38.5% at 15%, 71.4% at
+the assumed 30%, 87.4% at 50%). Cell 12 is corrected.
+
+The decomposition's honest support is 4,754,653 px, 66.9% of the scored domain,
+because that is where all four EBK standard-error surfaces exist.
+
+### Still open: the point-level subset
+
+The point-level validation of Section 6.5 is not yet reconciled: the manuscript
+reports 27 sites and J = 0.097, while v11 cell 25 rebuilds the computation and
+obtains 31 sites and J = 0.127. The earlier 27-site computation could not be
+located. See the cell comment in v11.
 
 ## The CRS diagnostics
 
