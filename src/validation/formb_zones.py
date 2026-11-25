@@ -39,17 +39,22 @@ CRS = "EPSG:32651"
 
 
 def align(fn, assumed=None):
+    # The resample runs at float64 and only the RESULT is cast to F -- see the
+    # note in src/validation/fos_means.py. At float32 the resample moved row 699
+    # col 3552, whose float64 slope is 9.999993980978775 degrees, up across the
+    # alpha >= 10 filter, which is the whole of the one-pixel disagreement with
+    # the v11 notebook. Fixed 25 Nov 2026.
     with rasterio.open(os.path.join(IN, fn)) as s:
-        a = s.read(1).astype(F)
+        a = s.read(1).astype(np.float64)
         if s.nodata is not None:
             a[a == s.nodata] = np.nan
         if (s.height, s.width) == REF and s.transform == RT:
-            return a
-        out = np.full(REF, np.nan, F)
+            return a.astype(F)
+        out = np.full(REF, np.nan, np.float64)
         reproject(a, out, src_transform=s.transform, src_crs=assumed or s.crs,
                   dst_transform=RT, dst_crs=CRS, resampling=Resampling.bilinear,
                   src_nodata=np.nan, dst_nodata=np.nan)
-        return out
+        return out.astype(F)
 
 
 # Same defect as src/validation/fos_means.py, fixed 25 Nov 2026: passing CRS as
@@ -87,6 +92,10 @@ w_ = np.isfinite(water) & (water > 0)
 m[w_ & (water < 20)] = 0.2
 m[w_ & (water >= 20) & (water < 35)] = 0.4
 m[w_ & (water >= 35) & (water < 50)] = 0.6
+# Missing until 25 Nov 2026, as in fos_means.py: cell 2 of the v10 and v11
+# notebooks ends the ladder at m = 0.8 for water >= 50. Without it every pixel
+# at or above 50% water content kept the 0.5 default.
+m[w_ & (water >= 50)] = 0.8
 m = m.astype(F)
 del pi, fines, sand, water, cb, phi
 gc.collect()
@@ -99,8 +108,8 @@ R = (c + (gam - m * GW) * z * ca * ca * tanphi).astype(F)
 D_st = (gam * z * sa * ca).astype(F)
 
 # Depth validity on the RAW raster, before the 0.1 m floor -- see the note in
-# src/validation/fos_means.py. Clipping first admits SoilGrids' 286 zero-depth
-# cells as 0.1 m columns; one survives into the scored domain.
+# src/validation/fos_means.py. A correctness fix only: no zero-depth cell in
+# fact reaches the scored domain, and the count is unchanged by it.
 valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z_raw) & (z_raw > 0)
          & np.isfinite(gam) & (gam > GW) & np.isfinite(tanphi)
          & np.isfinite(c) & np.isfinite(m))

@@ -43,20 +43,27 @@ CRS = "EPSG:32651"
 
 
 def align(fn, assumed=None):
-    out = np.full(REF, np.nan, F)
+    # The resample runs at float64 and only the RESULT is cast to F. Running it
+    # at float32, as this did until 25 Nov 2026, moved one cell across the
+    # alpha >= 10 filter: row 699 col 3552 has a float64 slope of
+    # 9.999993980978775 degrees -- six millionths of a degree below the cutoff --
+    # and the float32 resample rounded it up. That single pixel is the whole of
+    # why this script reported 7,104,441 scored pixels against the 7,104,440
+    # published, which the v11 notebook and kc_variance_common_mask.py produce
+    # because they resample at float64. One pixel in 7.1 million moves no
+    # published statistic; the point is that the archive now agrees with itself.
+    # Demonstrated by tools/scored_mask_trace.py.
+    out = np.full(REF, np.nan, np.float64)
     with rasterio.open(os.path.join(IN, fn)) as s:
-        if (s.height, s.width) == REF and s.transform == RT:
-            a = s.read(1).astype(F)
-            if s.nodata is not None:
-                a[a == s.nodata] = np.nan
-            return a
-        a = s.read(1).astype(F)
+        a = s.read(1).astype(np.float64)
         if s.nodata is not None:
             a[a == s.nodata] = np.nan
+        if (s.height, s.width) == REF and s.transform == RT:
+            return a.astype(F)
         reproject(a, out, src_transform=s.transform, src_crs=assumed or s.crs,
                   dst_transform=RT, dst_crs=CRS, resampling=Resampling.bilinear,
                   src_nodata=np.nan, dst_nodata=np.nan)
-    return out
+    return out.astype(F)
 
 
 # The slope raster is GENUINELY PRS 1992 as declared, which Section 4.4 of the
@@ -103,6 +110,12 @@ w_ = np.isfinite(water) & (water > 0)
 m[w_ & (water < 20)] = 0.2
 m[w_ & (water >= 20) & (water < 35)] = 0.4
 m[w_ & (water >= 35) & (water < 50)] = 0.6
+# This branch was MISSING until 25 Nov 2026. Cell 2 of both the v10 and the v11
+# notebook ends the ladder with m = 0.8 for water >= 50; this script stopped at
+# the 35-50 band, so every pixel at or above 50% water content silently kept the
+# 0.5 default instead of 0.8 -- an under-saturated column, and therefore an
+# overestimated Factor of Safety, wherever the band is occupied.
+m[w_ & (water >= 50)] = 0.8
 m = m.astype(F)
 del pi, fines, sand, water, cb, phi
 gc.collect()
@@ -116,15 +129,15 @@ R = (c + (gam - m * GW) * z * ca * ca * tanphi).astype(F)
 D_ps = (gam * z * sa * ca + k_h * gam * z * ca * ca).astype(F)
 D_st = (gam * z * sa * ca).astype(F)
 
-# Depth validity is tested on the RAW raster, before the 0.1 m floor. The
-# SoilGrids product carries 286 cells of exactly 0.0 at its native 250 m
-# resolution; clipping first turns each into a 0.1 m soil column and admits it
-# to the domain, which is a fabricated depth where the product reports no soil
-# and where the infinite-slope model is undefined. One such cell survived
-# reprojection and the slope filter, so this script reported 7,104,441 scored
-# pixels against the 7,104,440 published and produced by
-# src/sensitivity/kc_variance_common_mask.py, which tests z_raw > 0. Fixed
-# 25 Nov 2026; the published figure was the correct one.
+# Depth validity is tested on the RAW raster, before the 0.1 m floor, matching
+# kc_variance_common_mask.py and the v11 notebook. The SoilGrids product carries
+# 286 cells of exactly 0.0 at its native 250 m resolution, and clipping before
+# validating would admit each as a fabricated 0.1 m soil column on ground where
+# the product reports no soil. NOTE: none of those cells in fact reaches the
+# scored domain -- this change left the count at 7,104,441 -- so it is a
+# correctness fix, NOT the explanation of the one-pixel disagreement with
+# kc_variance_common_mask.py (7,104,440). That cause is still open; run
+# tools/scored_mask_diff.py to locate it.
 valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z_raw) & (z_raw > 0)
          & np.isfinite(gam) & (gam > GW) & np.isfinite(tanphi)
          & np.isfinite(c) & np.isfinite(m) & np.isfinite(k_h))

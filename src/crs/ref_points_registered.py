@@ -141,6 +141,7 @@ def derive(L):
     m[w & (water < 20)] = 0.2
     m[w & (water >= 20) & (water < 35)] = 0.4
     m[w & (water >= 35) & (water < 50)] = 0.6
+    m[w & (water >= 50)] = 0.8  # was missing; see fos_means.py (25 Nov 2026)
 
     pga = L["pga"]
     mx = np.nanmax(pga)
