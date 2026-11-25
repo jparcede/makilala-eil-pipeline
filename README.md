@@ -120,6 +120,38 @@ python tests/make_fixture.py     # synthetic rasters, no real data needed
 python tests/guard_test.py       # expect 4/4
 ```
 
+## Two kinds of file under src/
+
+Scripts here fall into two groups, and the distinction matters before you run
+anything.
+
+**Standalone.** Run directly once `MAKILALA_DIR` points at the rasters:
+
+    src/validation/fos_means.py            src/crs/crs_offset_scan.py
+    src/validation/formb_zones.py          src/crs/crs_decisive_test.py
+    src/validation/colocation_check.py     src/crs/registration_check.py
+    src/validation/point_screen_reconciliation.py
+    src/sensitivity/kc_variance_common_mask.py
+    src/sensitivity/regen_fig8_sobol.py    src/figures/regen_figs_v9.py
+    src/pipeline/build_v9.py               tests/make_fixture.py
+    tests/guard_test.py                    tests/scored_tripwire.py
+
+**Notebook cells.** These were extracted from the pipeline notebook and read
+names it defines (`SCORED`, `THRESHOLDS`, `cohesion_results`, `guard` and so
+on). Running one on its own raises `NameError`. Append it as a cell to a
+notebook that has been run from the top, which is what the Verification
+section below describes:
+
+    src/validation/v7_cell17_final_validation_v2.py
+    src/validation/v10_theta_plateau_test.py
+    src/validation/v10_block_size.py
+    src/validation/v10_extended_checks.py
+    src/validation/point_validation_harmonised_v2.py
+    src/sensitivity/kc_uncertainty_cell.py
+    src/sensitivity/kc_uncertainty_propagation.py
+    src/pipeline/v6_cell13_replacement.py
+    src/pipeline/v7_cell12b_clip_and_fill.py
+
 ## Which script produces which result
 
 | Manuscript item | Produced by |
