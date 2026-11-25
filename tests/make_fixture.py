@@ -106,7 +106,58 @@ gdf = gpd.GeoDataFrame({'ESI_local': esi}, geometry=polys,
                        crs=CRS.from_string("ESRI:102457"))
 gdf.to_file(f"{OUT}/LSI_North Cotabato.shp")
 
+# ---------------------------------------------------------------------------
+#  Geotechnical workbook. Section 6.5 of the notebook reads this, so the
+#  fixture needs one or the flattened pipeline raises FileNotFoundError before
+#  the guard is ever exercised. Added 25 Nov 2026, after restoring the full
+#  30-cell v10: the 16-cell version this fixture was built against never
+#  reached the point-level cell.
+#
+#  header=1 is deliberate -- the real workbook carries a merged banner row
+#  above the column names, and the reader passes header=1 to skip it.
+# ---------------------------------------------------------------------------
+import pandas as pd
+from pyproj import Transformer
+
+_n = 43
+_e = rng.uniform(X0 + 400, X0 + RES*W - 400, _n)
+_n_ = rng.uniform(Y0 - RES*H + 400, Y0 - 400, _n)
+_lon, _lat = Transformer.from_crs("EPSG:32651", "EPSG:4326",
+                                  always_xy=True).transform(_e, _n_)
+_is_ls = np.array([True]*25 + [False]*18)
+rng.shuffle(_is_ls)
+
+_fines = rng.uniform(2, 26, _n)
+_sand = np.clip(100 - _fines - rng.uniform(0, 6, _n), 40, 97)
+_cols = {
+    "LATITUDE ": _lat, "LONGITUDE": _lon,
+    "TEAM": ["T%d" % i for i in rng.integers(1, 6, _n)],
+    "SITE TYPE": np.where(_is_ls, "Landslide", "Non-Landslide"),
+    "DETAILED": "No", "DATE": "2025-07-22",
+    "SAMPLE LABEL": ["FIX-%03d" % i for i in range(_n)],
+    "Availability": "YES", "SITIO ": "-",
+    "BARANGAY": ["BGY-%02d" % i for i in rng.integers(1, 19, _n)],
+    "MUNICIPALITY": "Makilala", "PROVINCE": "North Cotabato",
+    "WATER CONTENT (%)": rng.uniform(33, 49, _n),
+    "BULK UNIT WEIGHT (kN/m3)": rng.uniform(10.2, 14.4, _n),
+    "DRY UNIT WEIGHT (kN/m3)": rng.uniform(7.5, 10.5, _n),
+    "Gravel %": rng.uniform(0, 4, _n),
+    "Sand %": _sand, "Silt/Clay %": _fines,
+    "LL": rng.uniform(28, 62, _n), "PL": rng.uniform(18, 34, _n),
+    "PI": rng.uniform(6, 30, _n),
+    "Group Symbol": "SM", "Group Name": "Silty Sand",
+}
+_df = pd.DataFrame(_cols)
+# six rows withheld on laboratory completeness, mirroring 43 -> 37
+for _c, _i in (("WATER CONTENT (%)", 0), ("BULK UNIT WEIGHT (kN/m3)", 1),
+               ("Sand %", 2), ("Silt/Clay %", 3), ("PI", 4), ("LL", 5)):
+    _df.loc[_i, _c] = np.nan
+with pd.ExcelWriter(f"{OUT}/Makilala Geotechnical Data.xlsx") as _w:
+    _df.to_excel(_w, sheet_name="GEOTECH MAPUA", index=False, startrow=1)
+
 print(f"fixture written to {OUT}")
+print(f"  geotechnical workbook  {_n} sites "
+      f"({int(_is_ls.sum())} landslide / {int((~_is_ls).sum())} non-landslide)")
 print(f"  reference grid {H} x {W} = {H*W:,} cells at {RES:g} m")
 print(f"  external grid  {H2} x {W2} at {RES2:g} m, different CRS -> must reproject")
 print(f"  polygons       {len(gdf)} ({len(gdf)-40} inside, 40 far outside)")

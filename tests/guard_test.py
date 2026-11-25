@@ -16,6 +16,8 @@ building a fixture:
 Set MAKILALA_DIR to point at real rasters instead if you would rather test
 against those; the corruption checks behave identically either way.
 """
+import contextlib
+import io
 import json
 import os
 import sys
@@ -49,11 +51,43 @@ def flatten(nb_path):
     return path
 
 
+BANNER = """
+======================================================================
+ANTI-DRIFT GUARD TEST
+----------------------------------------------------------------------
+The whole v10 pipeline is about to run against the SYNTHETIC fixture in
+tests/fixture, whose values are invented. Its PASS/FAIL comparisons
+against the published numbers are therefore MEANINGLESS here and are
+EXPECTED to fail -- a fixture of 360 invented polygons cannot reproduce
+an inventory of 3,140 real ones.
+
+That output is suppressed below. What this test asserts is only that the
+pipeline runs without raising, and that guard() then catches three kinds
+of state corruption. The verdict is the 4/4 line at the end.
+
+To see the pipeline output anyway, run with --verbose.
+======================================================================
+"""
+print(BANNER)
+
 flat = flatten(NOTEBOOK)
+_verbose = "--verbose" in sys.argv
+_sink = io.StringIO()
 try:
-    G = runpy.run_path(flat)
+    if _verbose:
+        G = runpy.run_path(flat)
+    else:
+        with contextlib.redirect_stdout(_sink):
+            G = runpy.run_path(flat)
+except Exception:
+    # On failure the suppressed output is the only diagnostic there is.
+    if not _verbose:
+        sys.stdout.write(_sink.getvalue())
+    raise
 finally:
     os.unlink(flat)
+print(f"  pipeline ran clean on the fixture "
+      f"({len(_sink.getvalue().splitlines()):,} lines suppressed)")
 
 guard = G["guard"]
 P = G["P"]
