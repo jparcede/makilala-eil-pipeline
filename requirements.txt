@@ -10,3 +10,13 @@ SALib>=1.4
 
 # Reading the geotechnical laboratory workbook
 openpyxl>=3.1
+
+# Vector geometry: inventory rasterisation, registration checks, the test fixture
+geopandas>=0.14
+shapely>=2.0
+pyproj>=3.5
+
+# Only src/validation/superseded_barangay_blocking.py, retained for provenance.
+# Nothing in the current pipeline imports it; skip this one if you do not need
+# to re-run the superseded barangay-level blocking.
+scikit-learn>=1.3

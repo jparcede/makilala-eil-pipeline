@@ -62,6 +62,17 @@ export MAKILALA_DIR=/path/to/rasters
 python src/validation/fos_means.py
 ```
 
+The restricted input rasters are not distributed here (see `data/README.md`), so
+most scripts need `MAKILALA_DIR` to point at them. One check does not, and it is
+the one to run first:
+
+```bash
+python tests/make_fixture.py     # synthetic rasters, no real data needed
+python tests/guard_test.py       # expect 4/4
+```
+
+Both were last run clean on 25 Nov 2026 from a fresh clone.
+
 Every script resolves its input directory from `MAKILALA_DIR`, falling back to
 `./data`. See `data/README.md` for the expected files, and for which inputs are
 restricted and how to request them.
