@@ -24,3 +24,6 @@ env/
 
 # Test fixture (regenerate with tests/make_fixture.py)
 tests/fixture/
+
+# macOS
+.DS_Store
