@@ -27,3 +27,6 @@ tests/fixture/
 
 # macOS
 .DS_Store
+
+# Local scaffolding, not part of the archive
+PUSH_INSTRUCTIONS.md
