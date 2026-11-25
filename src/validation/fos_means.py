@@ -116,7 +116,16 @@ R = (c + (gam - m * GW) * z * ca * ca * tanphi).astype(F)
 D_ps = (gam * z * sa * ca + k_h * gam * z * ca * ca).astype(F)
 D_st = (gam * z * sa * ca).astype(F)
 
-valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z) & (z > 0)
+# Depth validity is tested on the RAW raster, before the 0.1 m floor. The
+# SoilGrids product carries 286 cells of exactly 0.0 at its native 250 m
+# resolution; clipping first turns each into a 0.1 m soil column and admits it
+# to the domain, which is a fabricated depth where the product reports no soil
+# and where the infinite-slope model is undefined. One such cell survived
+# reprojection and the slope filter, so this script reported 7,104,441 scored
+# pixels against the 7,104,440 published and produced by
+# src/sensitivity/kc_variance_common_mask.py, which tests z_raw > 0. Fixed
+# 25 Nov 2026; the published figure was the correct one.
+valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z_raw) & (z_raw > 0)
          & np.isfinite(gam) & (gam > GW) & np.isfinite(tanphi)
          & np.isfinite(c) & np.isfinite(m) & np.isfinite(k_h))
 

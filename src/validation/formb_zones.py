@@ -98,7 +98,10 @@ z = np.clip(z_raw, 0.1, Z_CAP).astype(F)
 R = (c + (gam - m * GW) * z * ca * ca * tanphi).astype(F)
 D_st = (gam * z * sa * ca).astype(F)
 
-valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z) & (z > 0)
+# Depth validity on the RAW raster, before the 0.1 m floor -- see the note in
+# src/validation/fos_means.py. Clipping first admits SoilGrids' 286 zero-depth
+# cells as 0.1 m columns; one survives into the scored domain.
+valid = (np.isfinite(alpha) & (alpha >= ALPHA_MIN) & np.isfinite(z_raw) & (z_raw > 0)
          & np.isfinite(gam) & (gam > GW) & np.isfinite(tanphi)
          & np.isfinite(c) & np.isfinite(m))
 fst = np.full(REF, np.nan, F)

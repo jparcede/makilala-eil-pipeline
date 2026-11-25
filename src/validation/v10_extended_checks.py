@@ -126,10 +126,17 @@ if len(se) == 4:
     _den = np.nanmean(VARMAP[UDOM])
     SHARES = {k: 100*np.nanmean(v[UDOM])/_den for k, v in terms.items()}
     print(f"\n-- tab:kcvar variance shares (REL_SE_Z = {REL_SE_Z:.0%}) --")
-    for k, claim in [('z', 71.5), ('c(fines)', 13.4), ('m(water)', 6.1),
-                     ('alpha', 5.8), ('gamma', 2.9), ('phi(PI)', 0.3)]:
+    # Published Table 11 values. Three of these were stale until 25 Nov 2026,
+    # when kc_variance_common_mask.py was run against the archived rasters and
+    # the manuscript was corrected to match: z 71.5 -> 71.4, c(fines)
+    # 13.4 -> 13.1, alpha 5.8 -> 6.2, and the assumed z+alpha share
+    # 77.3 -> 77.6. Checking the code against a hardcoded copy of the paper is
+    # exactly how a stale literal gets mistaken for the paper's claim, so if
+    # Table 11 changes again, change it here in the same commit.
+    for k, claim in [('z', 71.4), ('c(fines)', 13.1), ('m(water)', 6.1),
+                     ('alpha', 6.2), ('gamma', 2.9), ('phi(PI)', 0.3)]:
         ok(f"Var(k_c) share, {k}", SHARES[k]/100, claim/100, 0.025)
-    ok("assumed z + alpha share", (SHARES['z']+SHARES['alpha'])/100, 0.773, 0.025)
+    ok("assumed z + alpha share", (SHARES['z']+SHARES['alpha'])/100, 0.776, 0.025)
     del terms
 
     KC_E = compute_kc(_cE, P.phi, P.alpha, E_m, P.gamma, _z)

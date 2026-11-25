@@ -191,7 +191,7 @@ for k in sorted(comm, key=lambda x: -comm[x]):
     print(f"{k:<12}{orig[k]:>11.1f}%{comm[k]:>13.1f}%")
 print("-"*38)
 print(f"{'TOTAL':<12}{sum(orig.values()):>11.1f}%{sum(comm.values()):>13.1f}%")
-print(f"\npublished in the manuscript: 71.5%")
+print(f"\npublished in the manuscript: 71.4%  (corrected from 71.5% on 25 Nov 2026)")
 print(f"v11 cell 12 prints          : 69.9%  (= the ORIGINAL column)")
 print(f"common-mask value           : {comm['z']:.1f}%")
 
