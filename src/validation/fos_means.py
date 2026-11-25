@@ -59,7 +59,14 @@ def align(fn, assumed=None):
     return out
 
 
-alpha = np.clip(align("Slope_PRSTM51N.tif", CRS), 0.1, 80.).astype(F)
+# The slope raster is GENUINELY PRS 1992 as declared, which Section 4.4 of the
+# manuscript establishes by free-offset scan against the field samples. Passing
+# CRS here as `assumed` overrode that and reprojected it as though it were
+# already EPSG:32651 -- reintroducing the exact ~168 m datum error the paper
+# exists to diagnose. It silently cost 34,406 scored pixels (7,070,034 against
+# the published 7,104,440) and moved the Form B defined fraction from 83.1% to
+# 82.9%. Fixed 25 Nov 2026; let align() read the file's own CRS.
+alpha = np.clip(align("Slope_PRSTM51N.tif"), 0.1, 80.).astype(F)
 z_raw = align("Soil Depth.tif").astype(F)
 pga = align("PGA 2019 EQ Events.tif").astype(F)
 gam = align("Mak_BulkUnitWeight.tif").astype(F)

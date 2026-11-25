@@ -73,6 +73,14 @@ python tests/guard_test.py       # expect 4/4
 
 Both were last run clean on 25 Nov 2026 from a fresh clone.
 
+With `MAKILALA_DIR` set, `src/validation/fos_means.py` and
+`src/validation/formb_zones.py` were also run against the real rasters on the
+same date and reproduce the manuscript: 7,104,441 scored pixels against the
+published 7,104,440 (the one-pixel difference is float32 against the
+notebook's float64 at the mask boundary), Form B defined on 83.1% of the
+scored domain with a mean of 0.3865, and zone means of 0.088, 0.320 and 0.596
+for the steep, transitional and lowland bands.
+
 Every script resolves its input directory from `MAKILALA_DIR`, falling back to
 `./data`. See `data/README.md` for the expected files, and for which inputs are
 restricted and how to request them.

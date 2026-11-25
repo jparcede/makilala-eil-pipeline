@@ -52,7 +52,11 @@ def align(fn, assumed=None):
         return out
 
 
-alpha = np.clip(align("Slope_PRSTM51N.tif", CRS), 0.1, 80.).astype(F)
+# Same defect as src/validation/fos_means.py, fixed 25 Nov 2026: passing CRS as
+# `assumed` overrode the slope raster's true PRS 1992 declaration and
+# reprojected it as though it were already EPSG:32651, reintroducing the ~168 m
+# datum error diagnosed in Section 4.4. Let align() read the file's own CRS.
+alpha = np.clip(align("Slope_PRSTM51N.tif"), 0.1, 80.).astype(F)
 z_raw = align("Soil Depth.tif").astype(F)
 gam = align("Mak_BulkUnitWeight.tif").astype(F)
 fines = align("Mak_Fines.tif").astype(F)
