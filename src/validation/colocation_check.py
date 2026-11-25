@@ -4,7 +4,27 @@ import os,numpy as np,pandas as pd,rasterio,geopandas as gpd
 from rasterio.crs import CRS
 from rasterio.features import rasterize
 from rasterio.warp import transform as warp_transform
-INPUT_DIR=os.environ.get("MAKILALA_DIR",os.path.expanduser("~/mnt/makilala_data"))
+# --- data directory resolution -----------------------------------------------
+# Was hardcoded to a sandbox path, so this script could not find the rasters on
+# any other machine. Mirrors src/validation/fos_means.py: MAKILALA_DIR first,
+# then the usual locations, then the working directory.
+def _find_data_dir():
+    cands = [os.environ.get("MAKILALA_DIR", ""),
+             os.path.expanduser("~/Downloads/makilala_data"),
+             os.path.expanduser("~/mnt/makilala_data"),
+             os.getcwd()]
+    for c in cands:
+        if c and os.path.exists(os.path.join(c, "Mak_BulkUnitWeight.tif")):
+            return c
+    msg = ["Could not locate makilala_data (no Mak_BulkUnitWeight.tif found).",
+           "Tried:"]
+    msg += ["  " + x for x in cands if x]
+    msg += ["Set it explicitly:  MAKILALA_DIR=/path/to/makilala_data python "
+            + os.path.basename(__file__)]
+    raise SystemExit(chr(10).join(msg))
+
+
+INPUT_DIR = _find_data_dir()
 with rasterio.open(os.path.join(INPUT_DIR,"Mak_BulkUnitWeight.tif")) as s:
     ref_shape=(s.height,s.width); ref_transform=s.transform
 ref_crs=CRS.from_string("EPSG:32651"); PX=abs(ref_transform.a)
